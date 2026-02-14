@@ -1,0 +1,6 @@
+[toolchain]
+channel = "v2.1.15"
+
+[features]
+seeds = false
+skip-lint = false

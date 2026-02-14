@@ -1,0 +1,455 @@
+{
+  "program_id": "G2E4eoenFMirpFKRfHNo2koDP7mrhnNWVwxyHASSpjQD",
+  "program_data_account": "5sR7AMdDD779jDmDBLZrDd1tUZ8QzPpWANxnKhMZpGqC",
+  "upgrade_authority": "HvFdDWS3RqymRAVx1ZdoL2RjiC38r5dtt19Z8op5jqDK",
+  "owner_loader": "BPFLoaderUpgradeab1e11111111111111111111111",
+  "is_upgradeable": true,
+  "binary_size_bytes": 642272,
+  "allocated_data_size": 642317,
+  "sol_balance": 0.00114144,
+  "tags": [
+    "Arbitrage Bot"
+  ],
+  "framework": "Anchor",
+  "anchor_version": "0.31.x (estimated from error enum)",
+  "project_name": "arb-bot",
+  "idl_available": false,
+  "idl_note": "No IDL published on-chain. IDL account (6nk4WSTacP7ABh8PGZagoJBL1d4rvHJW3PSdpwctwf6C) does not exist. No embedded IDL in binary.",
+  "source_verified": false,
+  "source_file_paths_from_binary": [
+    "programs/arb-bot/src/processor.rs",
+    "programs/arb-bot/src/cpi/system.rs",
+    "src/state.rs",
+    "src/extension/mod.rs",
+    "src/encode.rs",
+    "src/lib.rs"
+  ],
+  "solana_syscalls_used": [
+    "custom_panic",
+    "entrypoint",
+    "sol_get_rent_sysvar",
+    "sol_invoke_signed_c",
+    "sol_log_",
+    "sol_log_compute_units_",
+    "sol_memcmp_",
+    "sol_memcpy_",
+    "sol_memset_"
+  ],
+  "integrated_programs": {
+    "Meteora DLMM (LB CLMM)": {
+      "program_id": "LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo",
+      "instructions_called": [
+        "Swap2"
+      ]
+    },
+    "Pump.fun AMM (pAMM)": {
+      "program_id": "pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA",
+      "instructions_called": [
+        "Sell"
+      ]
+    },
+    "SPL Token": {
+      "program_id": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+      "instructions_called": [
+        "TransferChecked",
+        "InitializeAccount3"
+      ]
+    },
+    "Token-2022 (Token Extensions)": {
+      "program_id": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+      "instructions_called": [
+        "TransferChecked"
+      ]
+    },
+    "System Program": {
+      "program_id": "11111111111111111111111111111111",
+      "instructions_called": [
+        "CreateAccountWithSeed",
+        "AdvanceNonce"
+      ]
+    },
+    "Associated Token Account": {
+      "program_id": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+    },
+    "Memo Program": {
+      "program_id": "MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr"
+    },
+    "Pump.fun Fee Program": {
+      "program_id": "pfeeUxB6jkeY1Hxd7CsFCAjcbHA9rWtchMGdZ6VojVZ",
+      "instructions_called": [
+        "GetFees"
+      ]
+    }
+  },
+  "instruction_types": {
+    "instruction_0x00_arb_swap": {
+      "description": "Multi-hop arbitrage swap across DEXes",
+      "data_format": {
+        "byte_0": "instruction_index (0x00)",
+        "byte_1": "num_hops (u8)",
+        "bytes_2_9": "amount (u64 LE, lamports or smallest unit)",
+        "bytes_10_11": "flags/min_profit (u16 LE)"
+      },
+      "example": {
+        "data_hex": "00024e94af0a000000004b00",
+        "decoded": {
+          "ix_index": 0,
+          "num_hops": 2,
+          "amount": 179278926,
+          "amount_human": "~0.179 SOL or ~179.28 token units",
+          "flags": 75
+        }
+      },
+      "accounts_count": 45,
+      "behavior": "Executes multi-hop swaps via CPI to DEX programs (Meteora DLMM, Pump.fun AMM, etc). Logs 'hop: N amount: X' for each hop. Checks profit and reverts with error 0x1771 (6001) if unprofitable."
+    },
+    "instruction_0x02_create_token_account": {
+      "description": "Create a token account with seed for the bot wallet",
+      "data_format": {
+        "byte_0": "instruction_index (0x02)"
+      },
+      "example": {
+        "data_hex": "02"
+      },
+      "accounts_count": 5,
+      "accounts_layout": [
+        "payer/authority (signer, writable) - HvFdDWS3RqymRAVx1ZdoL2RjiC38r5dtt19Z8op5jqDK",
+        "new_token_account (writable)",
+        "mint (readonly)",
+        "token_program (readonly) - TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        "system_program (readonly) - 11111111111111111111111111111111"
+      ],
+      "behavior": "Creates a new token account using createAccountWithSeed + initializeAccount3 via CPI to System Program and SPL Token."
+    }
+  },
+  "error_codes": {
+    "6001 (0x1771)": "Most common - likely 'unprofitable arb' or custom constraint check (RequireViolated). 39 out of 44 failures.",
+    "6036 (0x1794)": "Seen 3 times - likely a specific constraint violation (e.g. ConstraintTokenMint or similar Anchor constraint).",
+    "6004 (0x1774)": "Seen 1 time - another custom error."
+  },
+  "transaction_patterns": {
+    "typical_arb_tx": [
+      "AdvanceNonce (system program)",
+      "SetComputeUnitLimit (compute budget)",
+      "SetComputeUnitPrice (compute budget)",
+      "RequestHeapFrame (compute budget, optional)",
+      "ArbBot::arb_swap (this program, ix 0x00)"
+    ],
+    "typical_create_account_tx": [
+      "AdvanceNonce (system program)",
+      "SetComputeUnitLimit (compute budget)",
+      "SetComputeUnitPrice (compute budget)",
+      "RequestHeapFrame (compute budget, optional)",
+      "ArbBot::create_token_account (this program, ix 0x02)"
+    ],
+    "note": "Uses durable nonces (AdvanceNonce) instead of recent blockhashes for transaction replay protection."
+  },
+  "wallet": {
+    "authority": "HvFdDWS3RqymRAVx1ZdoL2RjiC38r5dtt19Z8op5jqDK",
+    "nonce_account": "GSBD8qrSRLk4GueKn6HFN5kb3yMCPZoarkyjR2gjdiSu"
+  },
+  "instruction_patterns": [
+    {
+      "tx_name": "tx_arb_full",
+      "ix_index": 1,
+      "num_accounts": 45,
+      "data_b58": "1aBSBwTcJZtmt15",
+      "accounts": [
+        "HvFdDWS3RqymRAVx1ZdoL2RjiC38r5dtt19Z8op5jqDK",
+        "3Gqou2K8eFfk29JghDJe2wC8UA98Y1pebxEyP8ktwsQd",
+        "owJj9DAkgZMawoLGbTotFLTdbCgcUEdEipryhw8xgGF",
+        "LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo",
+        "2fBRjFUvskQDjaNNFfWRyEZmsUj5Z2Yn7gfj8vn5ciAj",
+        "LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo",
+        "6rB9BVQ6phKq9fSckQk9VzK69Qh8wm9959LjfcLyUzHP",
+        "Ce9KTZw4GbvBT2oDQWkiJwNN95gg1inUEmzkrLG2kMxJ",
+        "3Gqou2K8eFfk29JghDJe2wC8UA98Y1pebxEyP8ktwsQd",
+        "owJj9DAkgZMawoLGbTotFLTdbCgcUEdEipryhw8xgGF",
+        "EKwF2HD6X4rHHr4322EJeK9QBGkqhpHZQSanSUmWkecG",
+        "So11111111111111111111111111111111111111112",
+        "9uxF3LSZ48GmViQJBeL4hNZUcfTaaoFrSq7un8qCqzAh",
+        "3Gqou2K8eFfk29JghDJe2wC8UA98Y1pebxEyP8ktwsQd",
+        "HvFdDWS3RqymRAVx1ZdoL2RjiC38r5dtt19Z8op5jqDK",
+        "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+        "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        "MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr",
+        "D1ZN9Wj1fRSUQfCjhvnu1hqDMT7hzjzBBpi12nVniYD6",
+        "LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo",
+        "F6aXr5yEaDyCx1BorgKhYwLzWv8rTo6Kz5rGjttmr89n",
+        "8gDLfBvTwsWuuvUpWMsqdpVURBymyrfG7K7ug5ZRm1WR",
+        "2TSTFpDMeNTKBo6nReFonVbKwj3SgLgu6aFZv5sZ1VQ5",
+        "pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA",
+        "84Q5fsB6dhvsYHqDfkBXDvdfmSiweLeZwGmUtD1fUBAc",
+        "HvFdDWS3RqymRAVx1ZdoL2RjiC38r5dtt19Z8op5jqDK",
+        "ADyA8hdefvWN2dbGGWFotbzWxrAvLW83WG6QCVXvJKqw",
+        "EKwF2HD6X4rHHr4322EJeK9QBGkqhpHZQSanSUmWkecG",
+        "So11111111111111111111111111111111111111112",
+        "owJj9DAkgZMawoLGbTotFLTdbCgcUEdEipryhw8xgGF",
+        "3Gqou2K8eFfk29JghDJe2wC8UA98Y1pebxEyP8ktwsQd",
+        "5hLHcmWjLZ9H8cHBaEenxnSnLSKrcHfifQYngRxoakQu",
+        "HpF1WrBGYvBwNTqr3CNqH7AUe6Qfp5j44EXcB5NEzc2E",
+        "7VtfL8fvgNfhz17qKRMjzQEXgbdpnHHHQRh54R9jP2RJ",
+        "7GFUN3bWzJMKMRZ34JLsvcqdssDbXnp589SiE33KVwcC",
+        "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+        "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        "11111111111111111111111111111111",
+        "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL",
+        "GS4CU59F31iL7aR2Q8zVS8DRrcRnXX1yjQ66TqNVQnaR",
+        "pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA",
+        "DcxNpZHfnZaF3sWbH6WgCTrfa3QhvEpMsgDuq3jJkM1q",
+        "C9y5kTaQAB8QfjhCd35mT8Re72kAg7j7zdwEeSpwKdVd",
+        "5PHirr8joyTMp9JMm6nW7hNDVyEYdkzDqazxPD7RaTjx",
+        "pfeeUxB6jkeY1Hxd7CsFCAjcbHA9rWtchMGdZ6VojVZ"
+      ],
+      "data_hex": "00024e94af0a000000004b00",
+      "data_bytes": [
+        0,
+        2,
+        78,
+        148,
+        175,
+        10,
+        0,
+        0,
+        0,
+        0,
+        75,
+        0
+      ],
+      "data_len": 12
+    },
+    {
+      "tx_name": "tx_create_full",
+      "ix_index": 4,
+      "num_accounts": 5,
+      "data_b58": "3",
+      "accounts": [
+        "HvFdDWS3RqymRAVx1ZdoL2RjiC38r5dtt19Z8op5jqDK",
+        "CoRsF8LyVJKmGesbyvRn41ifm3e2rgTuxBgz6UigsnNn",
+        "D8dizu8GUgneJLjBuXjFqo6CM2z1Mgk7q8tG4CEgrD8d",
+        "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        "11111111111111111111111111111111"
+      ],
+      "data_hex": "02",
+      "data_bytes": [
+        2
+      ],
+      "data_len": 1
+    }
+  ],
+  "strings_from_binary": {
+    "source_paths": [
+      ",core/src/fmt/num.rs0x00010203040506070809101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960616263646566676869707172737475767778798081828384858687888990919293949596979899core/src/fmt/mod.rscore/src/str/mod.rs[...]begin <= end (`byte index  is not a char boundary; it is inside ) of ` is out of bounds of `core/src/unicode/printable.rs",
+      "AccountNotSignerno storage space0123456789abcdefInvalidProgramIdfailed to fill whole bufferError/home/runner/work/platform-tools/platform-tools/out/rust/library/alloc/src/string.rs/home/runner/work/platform-tools/platform-tools/out/rust/library/alloc/src/raw_vec.rsAnchorErrorProgramErrorSourcefilename (bytes deadlockSome <= lineNone    error_nameerror_code_numbererror_msgerror_origincompared_valuesAccountNameValuesPubkeysCustomInvalidArgumentInvalidInstructionDataInvalidAccountDataAccountDataTooSmallInsufficientFundsIncorrectProgramIdMissingRequiredSignatureAccountAlreadyInitializedUninitializedAccountNotEnoughAccountKeysAccountBorrowFailedMaxSeedLengthExceededInvalidSeedsBorshIoErrorAccountNotRentExemptUnsupportedSysvarIllegalOwnerMaxAccountsDataAllocationsExceededInvalidReallocMaxInstructionTraceLengthExceededBuiltinProgramsMustConsumeComputeUnitsInvalidAccountOwnerArithmeticOverflowImmutableIncorrectAuthorityInvalid Option representation: . The first byte must be 0 or 1ProgramErrorWithOriginprogram_errorprograms/arb-bot/src/cpi/system.rsa Display implementation returned an error unexpectedlyprograms/arb-bot/src/processor.rstip amount: ",
+      "The given account is not mutablecore/src/unicode/unicode_data.rs",
+      "cConstraintHasOneConstraintSigneralloc/src/fmt.rsconnection reset) when slicing `entity not foundhost unreachableinvalid filenamerange end index ",
+      "failed to fill whole bufferInvalid bool representation: Unexpected variant index: src/state.rs",
+      "src/extension/mod.rs",
+      "src/extension/mod.rs/home/runner/work/platform-tools/platform-tools/out/rust/library/alloc/src/slice.rsError/home/runner/work/platform-tools/platform-tools/out/rust/library/alloc/src/string.rs/home/runner/work/platform-tools/platform-tools/out/rust/library/alloc/src/raw_vec.rsDeprecatedInvalidNumericConversionTryingToInitPayerAsProgramAccountDeclaredProgramIdMismatchAccountDuplicateReallocsAccountReallocExceedsLimitAccountSysvarMismatchAccountNotProgramDataAccountNotInitializedAccountNotSystemOwnedInvalidProgramExecutableAccountOwnedByWrongProgramAccountNotMutableAccountNotEnoughKeysAccountDidNotSerializeAccountDidNotDeserializeAccountDiscriminatorMismatchAccountDiscriminatorNotFoundAccountDiscriminatorAlreadySetRequireGteViolatedRequireGtViolatedRequireKeysNeqViolatedRequireNeqViolatedRequireKeysEqViolatedRequireEqViolatedRequireViolatedConstraintMintTransferHookExtensionProgramIdConstraintMintTransferHookExtensionAuthorityConstraintMintTransferHookExtensionConstraintMintPermanentDelegateExtensionDelegateConstraintMintPermanentDelegateExtensionConstraintMintCloseAuthorityExtensionAuthorityConstraintMintCloseAuthorityExtensionConstraintMintMetadataPointerExtensionMetadataAddressConstraintMintMetadataPointerExtensionAuthorityConstraintMintMetadataPointerExtensionConstraintMintGroupMemberPointerExtensionMemberAddressConstraintMintGroupMemberPointerExtensionAuthorityConstraintMintGroupMemberPointerExtensionConstraintMintGroupPointerExtensionGroupAddressConstraintMintGroupPointerExtensionAuthorityConstraintMintGroupPointerExtensionConstraintAssociatedTokenTokenProgramConstraintMintTokenProgramConstraintTokenTokenProgramConstraintAccountIsNoneConstraintSpaceConstraintMintDecimalsConstraintMintFreezeAuthorityConstraintMintMintAuthorityConstraintTokenOwnerConstraintTokenMintConstraintZeroConstraintAddressConstraintCloseConstraintAssociatedInitConstraintAssociatedConstraintStateConstraintExecutableConstraintSeedsConstraintRentExemptConstraintOwnerConstraintRawConstraintMutEventInstructionStubIdlAccountNotEmptyIdlInstructionInvalidProgramIdlInstructionStubInstructionDidNotSerializeInstructionDidNotDeserializeInstructionFallbackNotFoundInstructionMissinga Display implementation returned an error unexpectedlyThe API being used is deprecated and should no longer be usedError during numeric conversionYou cannot/should not initialize the payer account as a program accountThe declared program id does not match the actual program idThe account was duplicated for more than one reallocationThe account reallocation exceeds the MAX_PERMITTED_DATA_INCREASE limitThe given public key does not match the required sysvarThe given account is not the associated token accountThe given account is not a program data accountThe program expected this account to be already initializedThe given account is not owned by the system programThe given account did not signProgram account is not executableProgram ID was not as expectedThe given account is owned by a different program than expectedNot enough account keys given to the instructionFailed to serialize the accountFailed to deserialize the accountAccount discriminator did not match what was expectedNo discriminator was found on the accountThe account discriminator was already set on this accountA require_gte expression was violatedA require_gt expression was violatedA require_keys_neq expression was violatedA require_neq expression was violatedA require_keys_eq expression was violatedA require_eq expression was violatedA require expression was violatedA transfer hook extension transfer hook program id constraint was violatedA transfer hook extension authority constraint was violatedA transfer hook extension constraint was violatedA permanent delegate extension delegate constraint was violatedA permanent delegate extension constraint was violatedA close authority extension authority constraint was violatedA close authority constraint was violatedA metadata pointer extension metadata address constraint was violatedA metadata pointer extension authority constraint was violatedA metadata pointer extension constraint was violatedA group member pointer extension group address constraint was violatedA group member pointer extension authority constraint was violatedA group member pointer extension constraint was violatedA group pointer extension group address constraint was violatedA group pointer extension authority constraint was violatedA group pointer extension constraint was violatedAn associated token account token program constraint was violatedA mint token program constraint was violatedA token account token program constraint was violatedA required account for the constraint is NoneA space constraint was violatedA mint decimals constraint was violatedA mint freeze authority constraint was violatedA mint mint authority constraint was violatedA token owner constraint was violatedA token mint constraint was violatedExpected zero account discriminantAn address constraint was violatedA close constraint was violatedAn associated init constraint was violatedAn associated constraint was violatedDeprecated Error, feel free to replace with something elseAn executable constraint was violatedA seeds constraint was violatedA rent exemption constraint was violatedA raw constraint was violatedA has one constraint was violatedA mut constraint was violatedThe program was compiled without `event-cpi` featureIDL account must be empty in order to resize, try closing firstInvalid program given to the IDL instructionThe program was compiled without idl instructionsThe program could not serialize the given instructionThe program could not deserialize the given instructionFallback functions are not supportedInstruction discriminator not providedIO Error: Custom program error: The arguments provided to a program instruction were invalidAn instruction's data contents was invalidAn account's data contents was invalidAn account's data was too smallAn account's balance was too small to complete the instructionThe account did not have the expected program idA signature was required but not foundAn initialize instruction was sent to an account that has already been initializedAn attempt to operate on an account that hasn't been initializedThe instruction expected additional account keysFailed to borrow a reference to account data, already borrowedLength of the seed is too long for address generationProvided seeds do not result in a valid addressAn account does not have enough lamports to be rent-exemptUnsupported sysvarProvided owner is not allowedAccounts data allocations exceeded the maximum allowed per transactionAccount data reallocation was invalidInstruction trace length exceeded the maximum allowed per transactionBuiltin programs must consume compute unitsInvalid account ownerProgram arithmetic overflowedAccount is immutableIncorrect authority providedsrc/encode.rs123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyzsrc/lib.rs/home/runner/work/platform-tools/platform-tools/out/rust/library/alloc/src/slice.rs/home/runner/work/platform-tools/platform-tools/out/rust/library/alloc/src/slice.rs/home/runner/work/platform-tools/platform-tools/out/rust/library/alloc/src/slice.rspermission deniedconnection refusednetwork unreachableconnection abortednot connectedaddress in useaddress not availablenetwork downbroken pipeentity already existsoperation would blocknot a directoryis a directorydirectory not emptyread-only filesystem or storage mediumfilesystem loop or indirection limit (e.g. symlink loop)stale network file handleinvalid input parameterinvalid datatimed outwrite zeroseek on unseekable filefilesystem quota exceededfile too largeresource busyexecutable file busycross-device link or renametoo many linksargument list too longoperation interruptedunsupportedunexpected end of fileout of memoryin progressother erroruncategorized error (os error )Error: memory allocation failed, out of memoryErrorcapacity overflowalloc/src/raw_vec.rsalloc/src/string.rsa formatting trait implementation returned an error when the underlying stream did not)..:called `Option::unwrap()` on a `None` valuepanicked at :"
+    ],
+    "solana_syscalls": [
+      "custom_panic",
+      "entrypoint",
+      "sol_get_rent_sysvar",
+      "sol_invoke_signed_c",
+      "sol_log_",
+      "sol_log_compute_units_",
+      "sol_memcmp_",
+      "sol_memcpy_",
+      "sol_memset_"
+    ],
+    "interesting_strings": [
+      "AccountNotAssociatedTokenAccountK",
+      "AccountNotSignerno storage space0123456789abcdefInvalidProgramIdfailed to fill whole bufferError/home/runner/work/platform-tools/platform-tools/out/rust/library/alloc/src/string.rs/home/runner/work/platform-tools/platform-tools/out/rust/library/alloc/src/raw_vec.rsAnchorErrorProgramErrorSourcefilename (bytes deadlockSome <= lineNone    error_nameerror_code_numbererror_msgerror_origincompared_valuesAccountNameValuesPubkeysCustomInvalidArgumentInvalidInstructionDataInvalidAccountDataAccountDataTooSmallInsufficientFundsIncorrectProgramIdMissingRequiredSignatureAccountAlreadyInitializedUninitializedAccountNotEnoughAccountKeysAccountBorrowFailedMaxSeedLengthExceededInvalidSeedsBorshIoErrorAccountNotRentExemptUnsupportedSysvarIllegalOwnerMaxAccountsDataAllocationsExceededInvalidReallocMaxInstructionTraceLengthExceededBuiltinProgramsMustConsumeComputeUnitsInvalidAccountOwnerArithmeticOverflowImmutableIncorrectAuthorityInvalid Option representation: . The first byte must be 0 or 1ProgramErrorWithOriginprogram_errorprograms/arb-bot/src/cpi/system.rsa Display implementation returned an error unexpectedlyprograms/arb-bot/src/processor.rstip amount: ",
+      "The given account is not mutablecore/src/unicode/unicode_data.rs",
+      "failed to fill whole bufferInvalid bool representation: Unexpected variant index: src/state.rs",
+      "range start index  out of range for slice of length slice index starts at  but ends at ",
+      "src/extension/mod.rs",
+      "src/extension/mod.rs/home/runner/work/platform-tools/platform-tools/out/rust/library/alloc/src/slice.rsError/home/runner/work/platform-tools/platform-tools/out/rust/library/alloc/src/string.rs/home/runner/work/platform-tools/platform-tools/out/rust/library/alloc/src/raw_vec.rsDeprecatedInvalidNumericConversionTryingToInitPayerAsProgramAccountDeclaredProgramIdMismatchAccountDuplicateReallocsAccountReallocExceedsLimitAccountSysvarMismatchAccountNotProgramDataAccountNotInitializedAccountNotSystemOwnedInvalidProgramExecutableAccountOwnedByWrongProgramAccountNotMutableAccountNotEnoughKeysAccountDidNotSerializeAccountDidNotDeserializeAccountDiscriminatorMismatchAccountDiscriminatorNotFoundAccountDiscriminatorAlreadySetRequireGteViolatedRequireGtViolatedRequireKeysNeqViolatedRequireNeqViolatedRequireKeysEqViolatedRequireEqViolatedRequireViolatedConstraintMintTransferHookExtensionProgramIdConstraintMintTransferHookExtensionAuthorityConstraintMintTransferHookExtensionConstraintMintPermanentDelegateExtensionDelegateConstraintMintPermanentDelegateExtensionConstraintMintCloseAuthorityExtensionAuthorityConstraintMintCloseAuthorityExtensionConstraintMintMetadataPointerExtensionMetadataAddressConstraintMintMetadataPointerExtensionAuthorityConstraintMintMetadataPointerExtensionConstraintMintGroupMemberPointerExtensionMemberAddressConstraintMintGroupMemberPointerExtensionAuthorityConstraintMintGroupMemberPointerExtensionConstraintMintGroupPointerExtensionGroupAddressConstraintMintGroupPointerExtensionAuthorityConstraintMintGroupPointerExtensionConstraintAssociatedTokenTokenProgramConstraintMintTokenProgramConstraintTokenTokenProgramConstraintAccountIsNoneConstraintSpaceConstraintMintDecimalsConstraintMintFreezeAuthorityConstraintMintMintAuthorityConstraintTokenOwnerConstraintTokenMintConstraintZeroConstraintAddressConstraintCloseConstraintAssociatedInitConstraintAssociatedConstraintStateConstraintExecutableConstraintSeedsConstraintRentExemptConstraintOwnerConstraintRawConstraintMutEventInstructionStubIdlAccountNotEmptyIdlInstructionInvalidProgramIdlInstructionStubInstructionDidNotSerializeInstructionDidNotDeserializeInstructionFallbackNotFoundInstructionMissinga Display implementation returned an error unexpectedlyThe API being used is deprecated and should no longer be usedError during numeric conversionYou cannot/should not initialize the payer account as a program accountThe declared program id does not match the actual program idThe account was duplicated for more than one reallocationThe account reallocation exceeds the MAX_PERMITTED_DATA_INCREASE limitThe given public key does not match the required sysvarThe given account is not the associated token accountThe given account is not a program data accountThe program expected this account to be already initializedThe given account is not owned by the system programThe given account did not signProgram account is not executableProgram ID was not as expectedThe given account is owned by a different program than expectedNot enough account keys given to the instructionFailed to serialize the accountFailed to deserialize the accountAccount discriminator did not match what was expectedNo discriminator was found on the accountThe account discriminator was already set on this accountA require_gte expression was violatedA require_gt expression was violatedA require_keys_neq expression was violatedA require_neq expression was violatedA require_keys_eq expression was violatedA require_eq expression was violatedA require expression was violatedA transfer hook extension transfer hook program id constraint was violatedA transfer hook extension authority constraint was violatedA transfer hook extension constraint was violatedA permanent delegate extension delegate constraint was violatedA permanent delegate extension constraint was violatedA close authority extension authority constraint was violatedA close authority constraint was violatedA metadata pointer extension metadata address constraint was violatedA metadata pointer extension authority constraint was violatedA metadata pointer extension constraint was violatedA group member pointer extension group address constraint was violatedA group member pointer extension authority constraint was violatedA group member pointer extension constraint was violatedA group pointer extension group address constraint was violatedA group pointer extension authority constraint was violatedA group pointer extension constraint was violatedAn associated token account token program constraint was violatedA mint token program constraint was violatedA token account token program constraint was violatedA required account for the constraint is NoneA space constraint was violatedA mint decimals constraint was violatedA mint freeze authority constraint was violatedA mint mint authority constraint was violatedA token owner constraint was violatedA token mint constraint was violatedExpected zero account discriminantAn address constraint was violatedA close constraint was violatedAn associated init constraint was violatedAn associated constraint was violatedDeprecated Error, feel free to replace with something elseAn executable constraint was violatedA seeds constraint was violatedA rent exemption constraint was violatedA raw constraint was violatedA has one constraint was violatedA mut constraint was violatedThe program was compiled without `event-cpi` featureIDL account must be empty in order to resize, try closing firstInvalid program given to the IDL instructionThe program was compiled without idl instructionsThe program could not serialize the given instructionThe program could not deserialize the given instructionFallback functions are not supportedInstruction discriminator not providedIO Error: Custom program error: The arguments provided to a program instruction were invalidAn instruction's data contents was invalidAn account's data contents was invalidAn account's data was too smallAn account's balance was too small to complete the instructionThe account did not have the expected program idA signature was required but not foundAn initialize instruction was sent to an account that has already been initializedAn attempt to operate on an account that hasn't been initializedThe instruction expected additional account keysFailed to borrow a reference to account data, already borrowedLength of the seed is too long for address generationProvided seeds do not result in a valid addressAn account does not have enough lamports to be rent-exemptUnsupported sysvarProvided owner is not allowedAccounts data allocations exceeded the maximum allowed per transactionAccount data reallocation was invalidInstruction trace length exceeded the maximum allowed per transactionBuiltin programs must consume compute unitsInvalid account ownerProgram arithmetic overflowedAccount is immutableIncorrect authority providedsrc/encode.rs123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyzsrc/lib.rs/home/runner/work/platform-tools/platform-tools/out/rust/library/alloc/src/slice.rs/home/runner/work/platform-tools/platform-tools/out/rust/library/alloc/src/slice.rs/home/runner/work/platform-tools/platform-tools/out/rust/library/alloc/src/slice.rspermission deniedconnection refusednetwork unreachableconnection abortednot connectedaddress in useaddress not availablenetwork downbroken pipeentity already existsoperation would blocknot a directoryis a directorydirectory not emptyread-only filesystem or storage mediumfilesystem loop or indirection limit (e.g. symlink loop)stale network file handleinvalid input parameterinvalid datatimed outwrite zeroseek on unseekable filefilesystem quota exceededfile too largeresource busyexecutable file busycross-device link or renametoo many linksargument list too longoperation interruptedunsupportedunexpected end of fileout of memoryin progressother erroruncategorized error (os error )Error: memory allocation failed, out of memoryErrorcapacity overflowalloc/src/raw_vec.rsalloc/src/string.rsa formatting trait implementation returned an error when the underlying stream did not)..:called `Option::unwrap()` on a `None` valuepanicked at :"
+    ]
+  },
+  "transaction_examples": {
+    "tx_arb_full": {
+      "accounts": [
+        "HvFdDWS3RqymRAVx1ZdoL2RjiC38r5dtt19Z8op5jqDK",
+        "2TSTFpDMeNTKBo6nReFonVbKwj3SgLgu6aFZv5sZ1VQ5",
+        "8gDLfBvTwsWuuvUpWMsqdpVURBymyrfG7K7ug5ZRm1WR",
+        "A7T9WWbdRZq4jEahcaCGTFBquJvptXh9Ha9ADZXP6G4u",
+        "F6aXr5yEaDyCx1BorgKhYwLzWv8rTo6Kz5rGjttmr89n",
+        "11111111111111111111111111111111",
+        "AZURBSLSK1111111111111111111111111111111111",
+        "ComputeBudget111111111111111111111111111111",
+        "SysvarRecentB1ockHashes11111111111111111111",
+        "G2E4eoenFMirpFKRfHNo2koDP7mrhnNWVwxyHASSpjQD",
+        "owJj9DAkgZMawoLGbTotFLTdbCgcUEdEipryhw8xgGF",
+        "2fBRjFUvskQDjaNNFfWRyEZmsUj5Z2Yn7gfj8vn5ciAj",
+        "3Gqou2K8eFfk29JghDJe2wC8UA98Y1pebxEyP8ktwsQd",
+        "6rB9BVQ6phKq9fSckQk9VzK69Qh8wm9959LjfcLyUzHP",
+        "7GFUN3bWzJMKMRZ34JLsvcqdssDbXnp589SiE33KVwcC",
+        "9uxF3LSZ48GmViQJBeL4hNZUcfTaaoFrSq7un8qCqzAh",
+        "Ce9KTZw4GbvBT2oDQWkiJwNN95gg1inUEmzkrLG2kMxJ",
+        "5hLHcmWjLZ9H8cHBaEenxnSnLSKrcHfifQYngRxoakQu",
+        "84Q5fsB6dhvsYHqDfkBXDvdfmSiweLeZwGmUtD1fUBAc",
+        "DcxNpZHfnZaF3sWbH6WgCTrfa3QhvEpMsgDuq3jJkM1q",
+        "HpF1WrBGYvBwNTqr3CNqH7AUe6Qfp5j44EXcB5NEzc2E",
+        "LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo",
+        "MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr",
+        "So11111111111111111111111111111111111111112",
+        "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+        "pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA",
+        "pfeeUxB6jkeY1Hxd7CsFCAjcbHA9rWtchMGdZ6VojVZ",
+        "5PHirr8joyTMp9JMm6nW7hNDVyEYdkzDqazxPD7RaTjx",
+        "7VtfL8fvgNfhz17qKRMjzQEXgbdpnHHHQRh54R9jP2RJ",
+        "ADyA8hdefvWN2dbGGWFotbzWxrAvLW83WG6QCVXvJKqw",
+        "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL",
+        "D1ZN9Wj1fRSUQfCjhvnu1hqDMT7hzjzBBpi12nVniYD6",
+        "EKwF2HD6X4rHHr4322EJeK9QBGkqhpHZQSanSUmWkecG",
+        "GS4CU59F31iL7aR2Q8zVS8DRrcRnXX1yjQ66TqNVQnaR",
+        "C9y5kTaQAB8QfjhCd35mT8Re72kAg7j7zdwEeSpwKdVd"
+      ],
+      "logs": [
+        "Program 11111111111111111111111111111111 invoke [1]",
+        "Program 11111111111111111111111111111111 success",
+        "Program G2E4eoenFMirpFKRfHNo2koDP7mrhnNWVwxyHASSpjQD invoke [1]",
+        "Program consumption: 165852 units remaining",
+        "Program LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo invoke [2]",
+        "Program log: Instruction: Swap2",
+        "Program LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo invoke [3]",
+        "Program LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo consumed 2221 of 140604 compute units",
+        "Program LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo success",
+        "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [3]",
+        "Program log: Instruction: TransferChecked",
+        "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 6238 of 135319 compute units",
+        "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success",
+        "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [3]",
+        "Program log: Instruction: TransferChecked",
+        "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 6238 of 126243 compute units",
+        "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success",
+        "Program TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb invoke [3]",
+        "Program log: Instruction: TransferChecked",
+        "Program TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb consumed 2354 of 116590 compute units",
+        "Program TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb success",
+        "Program LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo consumed 49541 of 162688 compute units",
+        "Program LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo success",
+        "Program log: hop: 0 amount: 6063579746",
+        "Program consumption: 112709 units remaining",
+        "Program pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA invoke [2]",
+        "Program log: Instruction: Sell",
+        "Program pfeeUxB6jkeY1Hxd7CsFCAjcbHA9rWtchMGdZ6VojVZ invoke [3]",
+        "Program log: Instruction: GetFees",
+        "Program pfeeUxB6jkeY1Hxd7CsFCAjcbHA9rWtchMGdZ6VojVZ consumed 4532 of 72493 compute units",
+        "Program return: pfeeUxB6jkeY1Hxd7CsFCAjcbHA9rWtchMGdZ6VojVZ FAAAAAAAAAAFAAAAAAAAADIAAAAAAAAA",
+        "Program pfeeUxB6jkeY1Hxd7CsFCAjcbHA9rWtchMGdZ6VojVZ success",
+        "Program TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb invoke [3]",
+        "Program log: Instruction: TransferChecked",
+        "Program TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb consumed 2355 of 63906 compute units",
+        "Program TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb success",
+        "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [3]",
+        "Program log: Instruction: TransferChecked",
+        "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 6238 of 58677 compute units",
+        "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success",
+        "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [3]",
+        "Program log: Instruction: TransferChecked",
+        "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 6238 of 49550 compute units",
+        "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success",
+        "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [3]",
+        "Program log: Instruction: TransferChecked",
+        "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 6238 of 40418 compute units",
+        "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success",
+        "Program data: Pi83CqUD3Co6XpBpAAAAAGLiamkBAAAAAAAAAAAAAACJcKyDAQAAAKP4xlnEAQAAwLPOpYMlAACn5Ju8HAEAAF3KtgoAAAAAFAAAAAAAAABQfAUAAAAAAAUAAAAAAAAAFF8BAAAAAAANTrEKAAAAADM4ogoAAAAAaOCl7FXU4rLI1/qsPKj6AsoJdfsoaZFseuc3AXAYua37X09ALsAqFUNcuW7D/3rUwXrSmsJRzHO800Qm636xugwGHuwUjwnw0eE7jt7qSoQe1GmPJ97XpIE6/PdP4Ta4IcZGJbARkUgUOFKok17Yu7A4xiMpvCD+SbfYOtqkr6JgjMwd/OlhtDt3nBkVBabi079F1aTbRhitdsgtYXVFNV0OMm1Matf/fY9TP8MJCFS9H+8ykQhAD19V155Lh4BRpyfUPZufw6+pahOlgUNEovu9sxbFMpzfUU3zXYdxkIgyAAAAAAAAAMa2DQAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+        "Program pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA invoke [3]",
+        "Program pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA consumed 2048 of 27499 compute units",
+        "Program pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA success",
+        "Program pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA consumed 85340 of 109495 compute units",
+        "Program pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA success",
+        "Program log: hop: 1 amount: 178403379",
+        "Program consumption: 23686 units remaining",
+        "Program G2E4eoenFMirpFKRfHNo2koDP7mrhnNWVwxyHASSpjQD consumed 142805 of 166453 compute units",
+        "Program G2E4eoenFMirpFKRfHNo2koDP7mrhnNWVwxyHASSpjQD failed: custom program error: 0x1771"
+      ],
+      "inner_instructions_count": 1,
+      "compute_units_consumed": 142955,
+      "fee": 13514,
+      "address_table_lookups": [
+        {
+          "accountKey": "2QPhdyRvExSaSjUj93MtdN3XEypFsApjCisbVtqYS2Cs",
+          "readonlyIndexes": [
+            12,
+            13,
+            3,
+            0,
+            1,
+            43,
+            44,
+            45,
+            165,
+            48,
+            49,
+            18,
+            66,
+            53
+          ],
+          "writableIndexes": [
+            61,
+            62,
+            14,
+            63,
+            164,
+            64,
+            65
+          ]
+        },
+        {
+          "accountKey": "53eT2H83FMeD9jb9bNrVsw9BuVZuPUwVhdXxcjGoX7u9",
+          "readonlyIndexes": [
+            49
+          ],
+          "writableIndexes": [
+            43,
+            45,
+            50,
+            52
+          ]
+        }
+      ]
+    },
+    "tx_create_full": {
+      "accounts": [
+        "HvFdDWS3RqymRAVx1ZdoL2RjiC38r5dtt19Z8op5jqDK",
+        "CoRsF8LyVJKmGesbyvRn41ifm3e2rgTuxBgz6UigsnNn",
+        "GA4VZwUeAQPNPZqNYZg1XdxPsaMuYpZCEKCASDS28SHj",
+        "11111111111111111111111111111111",
+        "AZURKRAKN1111111111111111111111111111111111",
+        "ComputeBudget111111111111111111111111111111",
+        "SysvarRecentB1ockHashes11111111111111111111",
+        "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        "D8dizu8GUgneJLjBuXjFqo6CM2z1Mgk7q8tG4CEgrD8d",
+        "G2E4eoenFMirpFKRfHNo2koDP7mrhnNWVwxyHASSpjQD"
+      ],
+      "logs": [
+        "Program 11111111111111111111111111111111 invoke [1]",
+        "Program 11111111111111111111111111111111 success",
+        "Program ComputeBudget111111111111111111111111111111 invoke [1]",
+        "Program ComputeBudget111111111111111111111111111111 success",
+        "Program ComputeBudget111111111111111111111111111111 invoke [1]",
+        "Program ComputeBudget111111111111111111111111111111 success",
+        "Program ComputeBudget111111111111111111111111111111 invoke [1]",
+        "Program ComputeBudget111111111111111111111111111111 success",
+        "Program G2E4eoenFMirpFKRfHNo2koDP7mrhnNWVwxyHASSpjQD invoke [1]",
+        "Program 11111111111111111111111111111111 invoke [2]",
+        "Program 11111111111111111111111111111111 success",
+        "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [2]",
+        "Program log: Instruction: InitializeAccount3",
+        "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 4188 of 10466 compute units",
+        "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success",
+        "Program G2E4eoenFMirpFKRfHNo2koDP7mrhnNWVwxyHASSpjQD consumed 8126 of 14400 compute units",
+        "Program G2E4eoenFMirpFKRfHNo2koDP7mrhnNWVwxyHASSpjQD success"
+      ],
+      "inner_instructions_count": 1,
+      "compute_units_consumed": 8726,
+      "fee": 12500,
+      "address_table_lookups": []
+    }
+  }
+}
