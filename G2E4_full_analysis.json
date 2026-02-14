@@ -1,0 +1,778 @@
+{
+  "meta": {
+    "program_id": "G2E4eoenFMirpFKRfHNo2koDP7mrhnNWVwxyHASSpjQD",
+    "binary_size": 642272,
+    "decompiled_file": "G2E4_decompiled.c",
+    "decompiled_lines": 10461,
+    "function_count": 138,
+    "decompiler": "Ghidra 12.0.3 (sBPF:v1 processor)",
+    "analysis_status": "COMPLETE (entrypoint failed decompilation due to 16,008 byte function timeout)"
+  },
+
+  "program_flow_reconstructed": {
+    "overview": "Anchor-based Solana arbitrage bot performing multi-hop swaps across 15+ DEXes with profit checking and tip distribution",
+    "entrypoint_flow": [
+      "1. entrypoint (0x8768, 16008 bytes) - FAILED TO DECOMPILE",
+      "2. FUN_ram_00000120: Initialize heap, set custom_panic handler",
+      "3. FUN_ram_00000c60: Deserialize and validate all accounts from input buffer",
+      "4. Read instruction discriminator byte (0x00=arb_swap, 0x02=create_token_account)",
+      "5. FUN_ram_0000e1c0: Deserialize swap route configuration from instruction data",
+      "6. FUN_ram_000103b0: Parse hop descriptors (u16 type + u16 account_count pairs)",
+      "7. FUN_ram_00010760: Calculate total accounts needed per hop type",
+      "8. FUN_ram_00010b78: Expand/transform hop type list (add auxiliary types)",
+      "9. FUN_ram_000137a0: Get rent sysvar (for account creation)",
+      "10. FUN_ram_00002368: Execute swap route with tip calculation",
+      "11. FUN_ram_000026c0: CORE SWAP ROUTER - iterate hops, dispatch CPIs, check profit",
+      "12. FUN_ram_00001ff0: SOL transfer for tip payment"
+    ]
+  },
+
+  "function_map": {
+    "FUN_ram_00000120": {
+      "address": "0x00000120",
+      "size": 2880,
+      "suggested_name": "initialize_heap_and_panic",
+      "purpose": "Sets up heap memory, stores custom_panic handler at known address, calls FUN_ram_00016aa0 for error infrastructure setup",
+      "category": "initialization",
+      "called_by": ["entrypoint"]
+    },
+    "FUN_ram_00000c60": {
+      "address": "0x00000c60",
+      "size": 1760,
+      "suggested_name": "deserialize_validate_accounts",
+      "purpose": "Loops through Solana account input buffer, deserializes each account (key, signer, writable, executable, lamports, data pointer, owner). Validates accounts against expected keys using memcmp (FUN_ram_0001e478). Extracts account metadata into structured arrays.",
+      "category": "account_handling",
+      "called_by": ["entrypoint"]
+    },
+    "FUN_ram_00001340": {
+      "address": "0x00001340",
+      "size": 856,
+      "suggested_name": "heap_allocate",
+      "purpose": "Higher-level bump allocator that calls FUN_ram_0000c5f0 for raw allocation, then copies data via FUN_ram_0001e430 (memcpy)",
+      "category": "memory"
+    },
+    "FUN_ram_00001688": {
+      "address": "0x00001688",
+      "size": 312,
+      "suggested_name": "vec_u8_grow",
+      "purpose": "Grows Vec<u8> capacity by doubling, calls FUN_ram_0000c6c8 for realloc",
+      "category": "memory"
+    },
+    "FUN_ram_000017c0": {
+      "address": "0x000017c0",
+      "size": 560,
+      "suggested_name": "vec_u8_grow_reserve",
+      "purpose": "Grows Vec<u8> with additional reserve capacity",
+      "category": "memory"
+    },
+    "FUN_ram_00001ff0": {
+      "address": "0x00001ff0",
+      "size": 888,
+      "suggested_name": "sol_transfer_system_program",
+      "purpose": "Transfers SOL via System Program CPI (instruction 0x02 = Transfer). Validates sender against DAT_ram_00020a80 (system program). Constructs AccountMeta array with 2 accounts (from=signer+writable, to=writable), calls sol_invoke_signed_c.",
+      "category": "cpi",
+      "called_by": ["entrypoint", "FUN_ram_00002368"]
+    },
+    "FUN_ram_00002368": {
+      "address": "0x00002368",
+      "size": 856,
+      "suggested_name": "execute_swap_with_tip",
+      "purpose": "Main swap execution wrapper. (1) Reads initial token balance from account at offset 0x98, (2) Calls FUN_ram_000026c0 (swap router), (3) Reads final token balance, (4) Calculates profit = final - initial, (5) Computes tip = profit * tip_bps / 10000 (minimum 1000 lamports), (6) Logs 'tip amount:' prefix with the tip value, (7) Calls FUN_ram_00001ff0 to transfer tip as SOL.",
+      "category": "core_logic",
+      "called_by": ["entrypoint"],
+      "calls": ["FUN_ram_000026c0", "FUN_ram_00001ff0", "FUN_ram_0001ffb8", "FUN_ram_00020890"]
+    },
+    "FUN_ram_000026c0": {
+      "address": "0x000026c0",
+      "size": 11608,
+      "suggested_name": "swap_router_dispatch_hops",
+      "purpose": "THE CORE SWAP ROUTER (11.3KB - largest application function). Heart of the arb bot: (1) Receives hop list, accounts, remaining_accounts iterator, (2) For each hop, reads next program account (DEX program), (3) Compares pubkey against ~20 known DEX program IDs via memcmp, (4) Routes to appropriate CPI handler, (5) After CPI, reads token balance at offset 0x98, (6) Logs 'hop: N' with balance delta, (7) Calls sol_log_compute_units_() between hops, (8) After all hops, compares final > initial balance (PROFIT CHECK), (9) Profitable: stores profit, returns 0x1771, (10) Not profitable: returns error 0x1773 (Anchor error 6001)",
+      "category": "core_logic",
+      "called_by": ["FUN_ram_00002368"],
+      "calls": [
+        "FUN_ram_0001e478 (memcmp for DEX ID comparison)",
+        "FUN_ram_00005620 (Meteora DLMM swap)",
+        "FUN_ram_00005d20 (13-account DEX CPI)",
+        "FUN_ram_00005fe8 (10-account DEX CPI x5)",
+        "FUN_ram_00006b48 (14-account DEX CPI)",
+        "FUN_ram_00006e00 (9-account DEX CPI)",
+        "FUN_ram_00007858 (16-account CLMM CPI)",
+        "FUN_ram_00007c80 (9-account directional swap)",
+        "sol_log_ (hop logging)",
+        "sol_log_compute_units_ (compute tracking)",
+        "sol_memcpy_ (buffer operations)"
+      ]
+    },
+    "FUN_ram_00005418": {
+      "address": "0x00005418",
+      "size": 520,
+      "suggested_name": "log_account_length_error",
+      "purpose": "Logs 'Failed to calculate account length:' with account info",
+      "category": "logging"
+    },
+    "FUN_ram_00005620": {
+      "address": "0x00005620",
+      "size": 1792,
+      "suggested_name": "cpi_meteora_dlmm_swap",
+      "purpose": "Meteora DLMM (LB CLMM) swap CPI. 21-23 accounts. Discriminators: 0xad837f01a485e633 (A->B) and 0xeaebda01123d0666 (B->A). Includes u128 fee calculation via FUN_ram_0001ffb8/FUN_ram_00020890.",
+      "category": "dex_cpi",
+      "dex": "Meteora DLMM",
+      "discriminators": ["0xad837f01a485e633", "0xeaebda01123d0666"]
+    },
+    "FUN_ram_00005d20": {
+      "address": "0x00005d20",
+      "size": 712,
+      "suggested_name": "cpi_generic_13_accounts",
+      "purpose": "DEX swap CPI with 13 accounts. Discriminator 0xc88775e1919ec6f8.",
+      "category": "dex_cpi",
+      "account_count": 13
+    },
+    "FUN_ram_00005fe8": {
+      "address": "0x00005fe8",
+      "size": 2912,
+      "suggested_name": "cpi_10_accounts_multi_dex",
+      "purpose": "DEX CPI with 10 accounts, instruction byte 0x01. Used by 5 different DEX program IDs.",
+      "category": "dex_cpi",
+      "account_count": 10,
+      "dex_count": 5
+    },
+    "FUN_ram_00006b48": {
+      "address": "0x00006b48",
+      "size": 696,
+      "suggested_name": "cpi_14_accounts",
+      "purpose": "DEX CPI with 14 accounts, instruction byte 0x01.",
+      "category": "dex_cpi",
+      "account_count": 14
+    },
+    "FUN_ram_00006e00": {
+      "address": "0x00006e00",
+      "size": 2648,
+      "suggested_name": "cpi_9_accounts",
+      "purpose": "DEX CPI with 9 accounts, instruction byte 0x01.",
+      "category": "dex_cpi",
+      "account_count": 9
+    },
+    "FUN_ram_00007858": {
+      "address": "0x00007858",
+      "size": 1064,
+      "suggested_name": "cpi_clmm_16_accounts",
+      "purpose": "CLMM-style swap with 16 accounts. Compares token account owner against DAT_ram_00020b20 for direction. Discriminator 0xc88775e1919ec6f8 with flags.",
+      "category": "dex_cpi",
+      "account_count": 16
+    },
+    "FUN_ram_00007c80": {
+      "address": "0x00007c80",
+      "size": 2792,
+      "suggested_name": "cpi_directional_9_accounts",
+      "purpose": "DEX CPI with 9 accounts, reads direction byte (0x00/0x01). Discriminator 0xfba64eede70c61a7.",
+      "category": "dex_cpi",
+      "account_count": 9
+    },
+    "entrypoint": {
+      "address": "0x00008768",
+      "size": 16008,
+      "suggested_name": "entrypoint",
+      "purpose": "Main program entrypoint. FAILED TO DECOMPILE. Instruction dispatcher for arb_swap and create_token_account.",
+      "category": "entrypoint",
+      "status": "DECOMPILATION FAILED"
+    },
+    "FUN_ram_0000c5f0": {
+      "address": "0x0000c5f0",
+      "size": 208,
+      "suggested_name": "bump_alloc",
+      "purpose": "Bump heap allocator. Allocates from top of heap downward.",
+      "category": "memory"
+    },
+    "FUN_ram_0000c6c0": {
+      "address": "0x0000c6c0",
+      "size": 8,
+      "suggested_name": "dealloc_noop",
+      "purpose": "No-op deallocator stub.",
+      "category": "memory"
+    },
+    "FUN_ram_0000c6c8": {
+      "address": "0x0000c6c8",
+      "size": 264,
+      "suggested_name": "bump_realloc",
+      "purpose": "Realloc: allocate new buffer, memcpy data.",
+      "category": "memory"
+    },
+    "FUN_ram_0000c7d0": {
+      "address": "0x0000c7d0",
+      "size": 448,
+      "suggested_name": "bump_alloc_zeroed",
+      "purpose": "Allocation with zero-fill via memset.",
+      "category": "memory"
+    },
+    "custom_panic": {
+      "address": "0x0000c8c0",
+      "size": 200,
+      "suggested_name": "custom_panic",
+      "purpose": "Custom panic handler. Logs message via sol_log_ then aborts.",
+      "category": "error_handling"
+    },
+    "FUN_ram_0000c998": {
+      "address": "0x0000c998",
+      "size": 1096,
+      "suggested_name": "spl_token_transfer",
+      "purpose": "SPL Token Transfer CPI (opcode 0x01), 3 accounts, via DAT_ram_000209c0.",
+      "category": "cpi"
+    },
+    "FUN_ram_0000cde0": {
+      "address": "0x0000cde0",
+      "size": 1152,
+      "suggested_name": "spl_token_transfer_checked",
+      "purpose": "SPL Token TransferChecked CPI (opcode 0x03), 3 accounts + amount.",
+      "category": "cpi"
+    },
+    "FUN_ram_0000d260": {
+      "address": "0x0000d260",
+      "size": 176,
+      "suggested_name": "nibble_iterator_next",
+      "purpose": "Reads packed 4-bit hop type values from instruction data.",
+      "category": "deserialization"
+    },
+    "FUN_ram_0000d310": {
+      "address": "0x0000d310",
+      "size": 104,
+      "suggested_name": "nibble_iterator_init",
+      "purpose": "Initializes nibble iterator from data stream.",
+      "category": "deserialization"
+    },
+    "FUN_ram_0000d378": {
+      "address": "0x0000d378",
+      "size": 392,
+      "suggested_name": "alloc_store_error",
+      "purpose": "Allocates and stores error/result value on heap.",
+      "category": "error_handling"
+    },
+    "FUN_ram_0000d500": {
+      "address": "0x0000d500",
+      "size": 432,
+      "suggested_name": "deserialize_bool",
+      "purpose": "Deserializes bool: 0x00=false, 0x01=true, else error.",
+      "category": "deserialization"
+    },
+    "FUN_ram_0000d6b0": {
+      "address": "0x0000d6b0",
+      "size": 288,
+      "suggested_name": "deserialize_pubkey",
+      "purpose": "Deserializes 32-byte Pubkey from byte stream.",
+      "category": "deserialization"
+    },
+    "FUN_ram_0000d7d0": {
+      "address": "0x0000d7d0",
+      "size": 1568,
+      "suggested_name": "deserialize_swap_params_168b",
+      "purpose": "Deserializes 168-byte struct (22 x u64 fields).",
+      "category": "deserialization"
+    },
+    "FUN_ram_0000ddf0": {
+      "address": "0x0000ddf0",
+      "size": 576,
+      "suggested_name": "deserialize_nested_swap_config",
+      "purpose": "Deserializes nested struct (calls FUN_ram_0000d7d0 twice).",
+      "category": "deserialization"
+    },
+    "FUN_ram_0000e030": {
+      "address": "0x0000e030",
+      "size": 400,
+      "suggested_name": "deserialize_option_bool",
+      "purpose": "Deserializes Option<bool>: 0x00=None, 0x01=Some(bool).",
+      "category": "deserialization"
+    },
+    "FUN_ram_0000e1c0": {
+      "address": "0x0000e1c0",
+      "size": 5048,
+      "suggested_name": "deserialize_swap_route_config",
+      "purpose": "MAIN INSTRUCTION DESERIALIZER (5KB). Parses complete swap route from instruction bytes.",
+      "category": "deserialization"
+    },
+    "FUN_ram_0000f578": {
+      "address": "0x0000f578",
+      "size": 456,
+      "suggested_name": "deserialize_struct_56b",
+      "purpose": "Deserializes 56-byte struct (7 x u64).",
+      "category": "deserialization"
+    },
+    "FUN_ram_0000f740": {
+      "address": "0x0000f740",
+      "size": 656,
+      "suggested_name": "deserialize_struct_73b",
+      "purpose": "Deserializes 73-byte struct (mixed field sizes).",
+      "category": "deserialization"
+    },
+    "FUN_ram_0000f9d0": {
+      "address": "0x0000f9d0",
+      "size": 288,
+      "suggested_name": "deserialize_4xu64",
+      "purpose": "Deserializes 4 consecutive u64 values (32 bytes).",
+      "category": "deserialization"
+    },
+    "FUN_ram_0000faf0": {
+      "address": "0x0000faf0",
+      "size": 1216,
+      "suggested_name": "deserialize_enum_variant",
+      "purpose": "Deserializes enum with variant data.",
+      "category": "deserialization"
+    },
+    "FUN_ram_000103b0": {
+      "address": "0x000103b0",
+      "size": 944,
+      "suggested_name": "parse_hop_descriptors",
+      "purpose": "Parses hop descriptors: (u16 hop_type, u16 account_count) pairs.",
+      "category": "core_logic"
+    },
+    "FUN_ram_00010760": {
+      "address": "0x00010760",
+      "size": 1048,
+      "suggested_name": "hop_type_registry",
+      "purpose": "Maps hop type IDs (0x00-0x1a) to required account counts. 27 distinct types.",
+      "category": "core_logic"
+    },
+    "FUN_ram_00010b78": {
+      "address": "0x00010b78",
+      "size": 3440,
+      "suggested_name": "expand_hop_types",
+      "purpose": "Expands compound hop types: 0x09->[0xd,0x7], 0x0e->[0xf,0x5], 0x1a->[0x1b].",
+      "category": "core_logic"
+    },
+    "FUN_ram_000118b0": {
+      "address": "0x000118b0",
+      "size": 3056,
+      "suggested_name": "anchor_error_to_string",
+      "purpose": "Maps Anchor error codes (100-0x1007) to string messages.",
+      "category": "error_handling"
+    },
+    "FUN_ram_000124a0": {
+      "address": "0x000124a0",
+      "size": 592,
+      "suggested_name": "create_anchor_error",
+      "purpose": "Constructs AnchorError object with code, message, source.",
+      "category": "error_handling"
+    },
+    "FUN_ram_000126f0": {
+      "address": "0x000126f0",
+      "size": 1088,
+      "suggested_name": "format_error_code",
+      "purpose": "Formats error code for display/logging.",
+      "category": "error_handling"
+    },
+    "FUN_ram_00013130": {
+      "address": "0x00013130",
+      "size": 1648,
+      "suggested_name": "display_instruction_error",
+      "purpose": "Display trait for Solana InstructionError variants (0-0x19).",
+      "category": "error_handling"
+    },
+    "FUN_ram_000137a0": {
+      "address": "0x000137a0",
+      "size": 136,
+      "suggested_name": "get_rent_sysvar",
+      "purpose": "Fetches Rent sysvar via sol_get_rent_sysvar syscall.",
+      "category": "sysvar"
+    },
+    "FUN_ram_00014fa0": {
+      "address": "0x00014fa0",
+      "size": 1280,
+      "suggested_name": "identity_range_check",
+      "purpose": "Identity function for u32 0x00-0x29, returns 0x2a for OOB. Ghidra match/enum artifact.",
+      "category": "utility"
+    },
+    "FUN_ram_000154a0": {
+      "address": "0x000154a0",
+      "size": 288,
+      "suggested_name": "create_unexpected_input_error",
+      "purpose": "Creates 'Unexpected length of input' error string.",
+      "category": "error_handling"
+    },
+    "FUN_ram_00015640": {
+      "address": "0x00015640",
+      "size": 344,
+      "suggested_name": "result_handler_deser",
+      "purpose": "Handles Result from deserialization. Called by all deserialize_* functions.",
+      "category": "error_handling"
+    },
+    "FUN_ram_00015e38": {
+      "address": "0x00015e38",
+      "size": 344,
+      "suggested_name": "result_handler_entrypoint",
+      "purpose": "Result handler for entrypoint operations.",
+      "category": "error_handling"
+    },
+    "FUN_ram_000164b8": {
+      "address": "0x000164b8",
+      "size": 1512,
+      "suggested_name": "io_error_kind_to_string",
+      "purpose": "Maps io::ErrorKind variants to description strings.",
+      "category": "error_handling"
+    },
+    "FUN_ram_00016aa0": {
+      "address": "0x00016aa0",
+      "size": 120,
+      "suggested_name": "alloc_error_info",
+      "purpose": "Allocates heap storage for error info (24 bytes).",
+      "category": "error_handling"
+    },
+    "FUN_ram_00016b18": {
+      "address": "0x00016b18",
+      "size": 728,
+      "suggested_name": "display_error",
+      "purpose": "Top-level error display handler. Routes by error type tag.",
+      "category": "error_handling"
+    },
+    "FUN_ram_00016e00": {
+      "address": "0x00016e00",
+      "size": 216,
+      "suggested_name": "create_success_string",
+      "purpose": "Creates 'operation successful' string.",
+      "category": "utility"
+    },
+    "FUN_ram_00016f00": {
+      "address": "0x00016f00",
+      "size": 40,
+      "suggested_name": "oom_abort",
+      "purpose": "Logs OOM error message and aborts.",
+      "category": "error_handling"
+    },
+    "FUN_ram_000170d0": {
+      "address": "0x000170d0",
+      "size": 424,
+      "suggested_name": "try_alloc_vec",
+      "purpose": "Safe vector allocation with u128 capacity calculation.",
+      "category": "memory"
+    },
+    "FUN_ram_000176b0": {
+      "address": "0x000176b0",
+      "size": 32,
+      "suggested_name": "alloc_failure_handler",
+      "purpose": "Handles alloc failure: OOM abort or retry.",
+      "category": "memory"
+    },
+    "FUN_ram_000176d0": {
+      "address": "0x000176d0",
+      "size": 72,
+      "suggested_name": "alloc_retry",
+      "purpose": "Retries failed allocation.",
+      "category": "memory"
+    },
+    "FUN_ram_00017768": {
+      "address": "0x00017768",
+      "size": 592,
+      "suggested_name": "format_to_string",
+      "purpose": "alloc::fmt::format() - formats args into heap-allocated String.",
+      "category": "utility"
+    },
+    "FUN_ram_00017f90": {
+      "address": "0x00017f90",
+      "size": 40,
+      "suggested_name": "unwrap_none_panic",
+      "purpose": "Panics with 'called Option::unwrap() on a None value'.",
+      "category": "error_handling"
+    },
+    "FUN_ram_000181a8": {
+      "address": "0x000181a8",
+      "size": 48,
+      "suggested_name": "begin_panic_fmt",
+      "purpose": "Entry point for formatted panics. Sets up panic payload.",
+      "category": "error_handling"
+    },
+    "FUN_ram_00018240": {
+      "address": "0x00018240",
+      "size": 200,
+      "suggested_name": "panic_overflow",
+      "purpose": "Panic on arithmetic overflow (Meteora fee calc).",
+      "category": "error_handling"
+    },
+    "FUN_ram_00018308": {
+      "address": "0x00018308",
+      "size": 232,
+      "suggested_name": "panic_with_location",
+      "purpose": "Panic with source file/line information.",
+      "category": "error_handling"
+    },
+    "FUN_ram_00019700": {
+      "address": "0x00019700",
+      "size": 1128,
+      "suggested_name": "fmt_write",
+      "purpose": "core::fmt::write() - iterates format args through vtable.",
+      "category": "formatting"
+    },
+    "FUN_ram_00019b68": {
+      "address": "0x00019b68",
+      "size": 1408,
+      "suggested_name": "fmt_pad_integral",
+      "purpose": "Formatter::pad_integral() - padding for numeric display.",
+      "category": "formatting"
+    },
+    "FUN_ram_0001a1a8": {
+      "address": "0x0001a1a8",
+      "size": 1184,
+      "suggested_name": "fmt_pad_str",
+      "purpose": "Formatter::pad() - string padding with width/alignment.",
+      "category": "formatting"
+    },
+    "FUN_ram_0001b578": {
+      "address": "0x0001b578",
+      "size": 48,
+      "suggested_name": "display_str",
+      "purpose": "Display impl for &str.",
+      "category": "formatting"
+    },
+    "FUN_ram_0001ba90": {
+      "address": "0x0001ba90",
+      "size": 8,
+      "suggested_name": "str_char_count_validated",
+      "purpose": "UTF-8 char count with full validation.",
+      "category": "utility"
+    },
+    "FUN_ram_0001ba98": {
+      "address": "0x0001ba98",
+      "size": 8,
+      "suggested_name": "str_char_count",
+      "purpose": "UTF-8 char count (optimized SIMD-like).",
+      "category": "utility"
+    },
+    "FUN_ram_0001baa8": {
+      "address": "0x0001baa8",
+      "size": 1304,
+      "suggested_name": "str_char_count_full",
+      "purpose": "Full UTF-8 character counting with vectorized scanning.",
+      "category": "utility"
+    },
+    "FUN_ram_0001d070": {
+      "address": "0x0001d070",
+      "size": 88,
+      "suggested_name": "panic_tip_error",
+      "purpose": "Panic in tip calculation path.",
+      "category": "error_handling"
+    },
+    "FUN_ram_0001d0c8": {
+      "address": "0x0001d0c8",
+      "size": 280,
+      "suggested_name": "hex_digit_lower",
+      "purpose": "Nibble to lowercase hex char.",
+      "category": "formatting"
+    },
+    "FUN_ram_0001d1e0": {
+      "address": "0x0001d1e0",
+      "size": 280,
+      "suggested_name": "hex_digit_upper",
+      "purpose": "Nibble to uppercase hex char.",
+      "category": "formatting"
+    },
+    "FUN_ram_0001d898": {
+      "address": "0x0001d898",
+      "size": 752,
+      "suggested_name": "fmt_u32_decimal",
+      "purpose": "u32 to decimal string via digit pair table.",
+      "category": "formatting"
+    },
+    "FUN_ram_0001dbb0": {
+      "address": "0x0001dbb0",
+      "size": 680,
+      "suggested_name": "fmt_u64_decimal",
+      "purpose": "u64 to decimal string via digit pair table.",
+      "category": "formatting"
+    },
+    "FUN_ram_0001e430": {
+      "address": "0x0001e430",
+      "size": 32,
+      "suggested_name": "memcpy",
+      "purpose": "sol_memcpy_ wrapper.",
+      "category": "utility"
+    },
+    "FUN_ram_0001e450": {
+      "address": "0x0001e450",
+      "size": 40,
+      "suggested_name": "memset",
+      "purpose": "sol_memset_ wrapper.",
+      "category": "utility"
+    },
+    "FUN_ram_0001e478": {
+      "address": "0x0001e478",
+      "size": 64,
+      "suggested_name": "memcmp",
+      "purpose": "sol_memcmp_ wrapper. CRITICAL for DEX program ID comparison in swap router.",
+      "category": "utility"
+    },
+    "FUN_ram_0001e4b8": {
+      "address": "0x0001e4b8",
+      "size": 16,
+      "suggested_name": "f64_cmp_wrapper",
+      "purpose": "f64 comparison wrapper.",
+      "category": "math"
+    },
+    "FUN_ram_0001e4c8": {
+      "address": "0x0001e4c8",
+      "size": 224,
+      "suggested_name": "f64_total_cmp",
+      "purpose": "IEEE 754 ordered comparison (handles NaN, ±0).",
+      "category": "math"
+    },
+    "FUN_ram_0001e5a8": {
+      "address": "0x0001e5a8",
+      "size": 120,
+      "suggested_name": "f64_partial_cmp",
+      "purpose": "Returns -1/0/1 for f64 comparison.",
+      "category": "math"
+    },
+    "FUN_ram_0001e620": {
+      "address": "0x0001e620",
+      "size": 504,
+      "suggested_name": "u64_to_f64",
+      "purpose": "Converts u64 to f64 (for exchange rate/ratio calculations).",
+      "category": "math"
+    },
+    "FUN_ram_0001e870": {
+      "address": "0x0001e870",
+      "size": 192,
+      "suggested_name": "u128_shl",
+      "purpose": "128-bit left shift.",
+      "category": "math"
+    },
+    "FUN_ram_0001e930": {
+      "address": "0x0001e930",
+      "size": 200,
+      "suggested_name": "u128_shr",
+      "purpose": "128-bit right shift.",
+      "category": "math"
+    },
+    "FUN_ram_0001e9f8": {
+      "address": "0x0001e9f8",
+      "size": 352,
+      "suggested_name": "u128_mul",
+      "purpose": "128-bit multiplication using schoolbook algorithm.",
+      "category": "math"
+    },
+    "FUN_ram_0001eb58": {
+      "address": "0x0001eb58",
+      "size": 5216,
+      "suggested_name": "u128_div",
+      "purpose": "128-bit division with remainder (5.1KB, largest math function).",
+      "category": "math"
+    },
+    "FUN_ram_0001ffb8": {
+      "address": "0x0001ffb8",
+      "size": 72,
+      "suggested_name": "u128_mul_wrapper",
+      "purpose": "Wrapper for u128 multiply. Used in fee/tip calculations.",
+      "category": "math"
+    },
+    "FUN_ram_00020000": {
+      "address": "0x00020000",
+      "size": 1928,
+      "suggested_name": "f64_multiply",
+      "purpose": "Software f64 multiplication (IEEE 754). Handles denormals, Inf, NaN.",
+      "category": "math"
+    },
+    "FUN_ram_00020788": {
+      "address": "0x00020788",
+      "size": 192,
+      "suggested_name": "f64_to_u64",
+      "purpose": "f64 to u64 conversion. Saturates at u64::MAX.",
+      "category": "math"
+    },
+    "FUN_ram_00020848": {
+      "address": "0x00020848",
+      "size": 72,
+      "suggested_name": "u128_shr_wrapper",
+      "purpose": "Wrapper for u128 right shift.",
+      "category": "math"
+    },
+    "FUN_ram_00020890": {
+      "address": "0x00020890",
+      "size": 72,
+      "suggested_name": "u128_div_wrapper",
+      "purpose": "Wrapper for u128 division. Used in fee/tip calculations.",
+      "category": "math"
+    },
+    "FUN_ram_000208d8": {
+      "address": "0x000208d8",
+      "size": 16,
+      "suggested_name": "f64_mul_wrapper",
+      "purpose": "Wrapper for f64 multiply. Used for exchange rate calculations.",
+      "category": "math"
+    }
+  },
+
+  "swap_routing_logic": {
+    "overview": "Multi-hop arbitrage execution engine processing swap sequences across 15-20 DEXes via CPI",
+    "flow": [
+      "1. Read initial token balance from bot's token account (offset 0x98)",
+      "2. For each hop:",
+      "   a. Read next DEX program account from remaining_accounts",
+      "   b. Compare program pubkey against ~20 known DEX IDs (memcmp)",
+      "   c. Route to appropriate CPI handler",
+      "   d. After CPI, read new token balance",
+      "   e. Log 'hop: N' with balance delta",
+      "   f. Call sol_log_compute_units_()",
+      "3. Compare final > initial balance",
+      "4. Profitable → store profit, return success (0x1771)",
+      "5. Not profitable → error 0x1773 (Anchor error 6001)"
+    ],
+    "hop_type_system": {
+      "total_types": 27,
+      "range": "0x00-0x1a",
+      "compound_types": {
+        "0x09": "Expands to [0x0d, 0x07]",
+        "0x0e": "Expands to [0x0f, 0x05]",
+        "0x1a": "Expands to [0x1b]"
+      },
+      "encoding": "Nibble-packed (4-bit per type) for compact instruction data"
+    },
+    "profit_check": {
+      "mechanism": "final_balance > initial_balance",
+      "error_on_fail": "Anchor error 6001",
+      "tip": "profit * tip_bps / 10000, minimum 1000 lamports"
+    }
+  },
+
+  "dex_integrations": {
+    "confirmed": {
+      "Meteora DLMM": {"handler": "FUN_ram_00005620", "accounts": "21-23", "discriminators": ["0xad837f01a485e633", "0xeaebda01123d0666"]},
+      "5x 10-account DEXes": {"handler": "FUN_ram_00005fe8", "accounts": 10, "instruction_byte": "0x01"},
+      "13-account DEX": {"handler": "FUN_ram_00005d20", "accounts": 13, "discriminator": "0xc88775e1919ec6f8"},
+      "14-account DEX": {"handler": "FUN_ram_00006b48", "accounts": 14},
+      "9-account DEX": {"handler": "FUN_ram_00006e00", "accounts": 9},
+      "16-account CLMM": {"handler": "FUN_ram_00007858", "accounts": 16, "note": "validates token owner for direction"},
+      "9-account directional": {"handler": "FUN_ram_00007c80", "accounts": 9, "discriminator": "0xfba64eede70c61a7"}
+    },
+    "total_unique_program_ids": "~20 in data section (0x20900-0x21228)"
+  },
+
+  "return_codes": {
+    "0x176F": "Individual hop CPI success",
+    "0x1771": "Final success (profitable)",
+    "0x1773": "Not profitable / CPI error",
+    "0x1775": "Arithmetic overflow",
+    "0x1776": "Intermediate hop success",
+    "0x1777": "Missing data error"
+  },
+
+  "syscalls": [
+    "sol_log_", "sol_log_compute_units_", "sol_memcpy_", "sol_memset_",
+    "sol_memcmp_", "sol_invoke_signed_c", "sol_get_rent_sysvar", "custom_panic", "abort"
+  ],
+
+  "source_references": [
+    "programs/arb-bot/src/processor.rs",
+    "programs/arb-bot/src/cpi/system.rs",
+    "src/state.rs",
+    "src/extension/mod.rs",
+    "src/encode.rs (base58: 123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz)",
+    "src/lib.rs"
+  ],
+
+  "binary_statistics": {
+    "core_logic_bytes": 14464,
+    "dex_cpi_bytes": 10472,
+    "deserialization_bytes": 11240,
+    "error_handling_bytes": 12688,
+    "math_u128_bytes": 6112,
+    "math_f64_bytes": 3104,
+    "formatting_bytes": 6416,
+    "memory_mgmt_bytes": 3296,
+    "note": "entrypoint (16008 bytes) NOT included - failed decompilation"
+  }
+}

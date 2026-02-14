@@ -35,38 +35,129 @@
     "sol_memcpy_",
     "sol_memset_"
   ],
-  "integrated_programs": {
-    "Meteora DLMM (LB CLMM)": {
-      "program_id": "LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo",
-      "instructions_called": [
-        "Swap2"
-      ]
-    },
-    "Pump.fun AMM (pAMM)": {
-      "program_id": "pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA",
-      "instructions_called": [
-        "Sell"
-      ]
-    },
+  "integrated_dexes": {
+    "total_count": 21,
+    "dexes": {
+      "Meteora DLMM": {
+        "program_id": "LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo",
+        "accounts_per_hop": "21-23 (variable bin arrays)",
+        "cpi_handler": "FUN_ram_00005620 (1792 bytes)",
+        "instructions_called": ["Swap2"]
+      },
+      "Meteora Dynamic AMM (Pools)": {
+        "program_id": "Eo7WjKq67rjJQSZxS6z3YkapzY3eMj6Xy8X5EQVn5UaB",
+        "accounts_per_hop": "14-15",
+        "instructions_called": ["Swap"]
+      },
+      "Pump.fun AMM (PumpSwap)": {
+        "program_id": "pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA",
+        "accounts_per_hop": "15",
+        "instructions_called": ["Sell"]
+      },
+      "Raydium AMM V4": {
+        "program_id": "675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8",
+        "accounts_per_hop": "17",
+        "instructions_called": ["Swap"]
+      },
+      "Raydium CLMM": {
+        "program_id": "2wT8Yq49kHgDzXuPxZSaeLaH1qbmGXtEyPy64bL7aD3c",
+        "accounts_per_hop": "13",
+        "instructions_called": ["Swap"]
+      },
+      "Raydium CLMM (openbook)": {
+        "program_id": "T1pyyaTNZsKv2WcRAB8oVnk93mLJw2XzjtVYqCsaHqt",
+        "accounts_per_hop": "13",
+        "instructions_called": ["Swap"]
+      },
+      "Raydium CLMM V2 (CAMM)": {
+        "program_id": "CAMMCzo5YL8w4VFF8KVHrK22GGUsp5VTaW7grrKgrWqK",
+        "accounts_per_hop": "13",
+        "instructions_called": ["Swap"]
+      },
+      "Raydium CPMM": {
+        "program_id": "CPMMoo8L3F4NbTegBCKVNunggL7H1ZpdTHKxQB5qKP1C",
+        "accounts_per_hop": "16",
+        "instructions_called": ["Swap"]
+      },
+      "Raydium CP-AMM (new)": {
+        "program_id": "cpamdpZCGKUy5JxQXB4dcpGPiikHawvSWAd6mEn1sGG",
+        "accounts_per_hop": "16",
+        "instructions_called": ["Swap"]
+      },
+      "Orca Whirlpool": {
+        "program_id": "whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc",
+        "accounts_per_hop": "11",
+        "instructions_called": ["Swap"]
+      },
+      "Orca Whirlpool (legacy)": {
+        "program_id": "DjVE6JNiYqPL2QXyCUUh8rNjHrbz9hXHNYt99MQ59qw1",
+        "accounts_per_hop": "11",
+        "instructions_called": ["Swap"]
+      },
+      "Orca Token Swap V2": {
+        "program_id": "9W959DqEETiGZocYWCQPaJ6sBmUzgfxXfqGeTEdp3aQP",
+        "accounts_per_hop": "10",
+        "instructions_called": ["Swap"]
+      },
+      "Fluxbeam DEX": {
+        "program_id": "FLUXubRmkEi2q6K3Y9kBPg9248ggaZVsoSFhtJHSrm1X",
+        "accounts_per_hop": "10",
+        "instructions_called": ["Swap"]
+      },
+      "Saber Stable Swap": {
+        "program_id": "SSwapUtytfBdBn1b9NUGG6foMVPtcWgpRU32HToDUZr",
+        "accounts_per_hop": "10",
+        "instructions_called": ["Swap"]
+      },
+      "Saros Swap": {
+        "program_id": "SSwpkEEcbUqx4vtoEByFjSkhKdCT862DNVb52nZg1UZ",
+        "accounts_per_hop": "10",
+        "instructions_called": ["Swap"]
+      },
+      "StepN DEX (Dooar)": {
+        "program_id": "Dooar9JkhdZ7J3LHN3A7YCuoGRUggXhQaG4kijfLGU2j",
+        "accounts_per_hop": "10",
+        "instructions_called": ["Swap"]
+      },
+      "Penguin Swap / Phoenix": {
+        "program_id": "PSwapMdSai8tjrEXcxFeQth87xC4rRsa4VA5mhGhXkP",
+        "accounts_per_hop": "10",
+        "instructions_called": ["Swap"]
+      },
+      "PancakeSwap AMM": {
+        "program_id": "HpNfyc2Saw7RKkQd8nEL4khUcuPhQ7WwY1B2qjx8jxFq",
+        "accounts_per_hop": "16",
+        "instructions_called": ["Swap"]
+      },
+      "Byreal CLMM": {
+        "program_id": "REALQqNEomY6cQGZJUGwywTBD2UmDT32rZcNnfxQ5N2",
+        "accounts_per_hop": "12",
+        "instructions_called": ["Swap"]
+      },
+      "Futarchy AMM": {
+        "program_id": "FUTARELBfJfQ8RDGhg1wdhddq1odMAJUePHFuBYfUxKq",
+        "accounts_per_hop": "14-15",
+        "instructions_called": ["Swap"]
+      },
+      "Fusion AMM": {
+        "program_id": "fUSioN9YKKSa3CUC2YUc4tPkHJ5Y6XW1yz8y6F7qWz9",
+        "accounts_per_hop": "14-15",
+        "instructions_called": ["Swap"]
+      }
+    }
+  },
+  "infrastructure_programs": {
     "SPL Token": {
       "program_id": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
-      "instructions_called": [
-        "TransferChecked",
-        "InitializeAccount3"
-      ]
+      "instructions_called": ["TransferChecked", "InitializeAccount3"]
     },
-    "Token-2022 (Token Extensions)": {
+    "Token-2022": {
       "program_id": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
-      "instructions_called": [
-        "TransferChecked"
-      ]
+      "instructions_called": ["TransferChecked"]
     },
     "System Program": {
       "program_id": "11111111111111111111111111111111",
-      "instructions_called": [
-        "CreateAccountWithSeed",
-        "AdvanceNonce"
-      ]
+      "instructions_called": ["CreateAccountWithSeed", "Transfer", "AdvanceNonce"]
     },
     "Associated Token Account": {
       "program_id": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
@@ -76,9 +167,108 @@
     },
     "Pump.fun Fee Program": {
       "program_id": "pfeeUxB6jkeY1Hxd7CsFCAjcbHA9rWtchMGdZ6VojVZ",
-      "instructions_called": [
-        "GetFees"
-      ]
+      "instructions_called": ["GetFees"]
+    },
+    "Wrapped SOL (Native Mint)": "So11111111111111111111111111111111111111112",
+    "USDC Mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+  },
+  "hardcoded_constants": {
+    "pda_seeds_or_authority_keys": [
+      "6gVaJHAiTxGpDupK8Hiardpt6BD3BiLyegB1u4FUC5ue (on-curve)",
+      "7h9vitALcvFXZYJu3A5HtXGWWEfp6con8R3V7osGcePU (off-curve PDA)",
+      "86ZSW2TEKjvnXN7ZULx4Fpwwv3iy2HEBjwNvbsXK7mH1 (off-curve PDA)",
+      "5QFQCXDVUFoLxiCFdHkiAhwMwCSMa8QWZmkLZwDbDFoH (off-curve PDA)",
+      "5PECbuLwKRdB8iNocpkJ2vWXTxetSRuWZKHgdzAtu5WK (off-curve PDA)",
+      "5QQu2Q2GDhuo2m8YwbWN2MgbBPAgiTpvDADxGDSU5CG3 (on-curve)",
+      "5YEsFCJ6CeC8gEok8SZVEe9Ps5ojBKYbDt7d4dYZ4eJD (on-curve)",
+      "7ZJSMD7ouQGUkx1ZJeJgkWj16ZV1fEataxSHTxySy2Z1 (off-curve PDA)"
+    ]
+  },
+  "ghidra_decompilation": {
+    "total_functions": 138,
+    "decompiled_successfully": 137,
+    "failed": ["entrypoint (16008 bytes - timeout at 600s)"],
+    "key_functions": {
+      "entrypoint": {
+        "address": "0x00008768",
+        "size_bytes": 16008,
+        "purpose": "Main entry: heap init, deserialize accounts/instruction data, dispatch by instruction index, call swap executor or create_token_account",
+        "calls": ["FUN_ram_0000d310", "FUN_ram_00010b78", "FUN_ram_00018308", "FUN_ram_0001e818", "FUN_ram_0001e430", "FUN_ram_0001ba98", "FUN_ram_000176b0", "FUN_ram_000017c0", "FUN_ram_000208d8", "FUN_ram_00001ff0"]
+      },
+      "swap_executor (FUN_ram_00002368)": {
+        "address": "0x00002368",
+        "size_bytes": 856,
+        "purpose": "Execute swap + profit check + tip calculation. Calls swap_router, then checks if final_balance > initial_balance. Calculates tip = profit * tip_bps / 100, minimum 1000 lamports.",
+        "profit_check": "if final_balance <= initial_balance: return 0x1772 (error). Otherwise store tip amount and return success.",
+        "tip_formula": "tip = profit * (flags & 0xFF) / 100, min 1000 lamports",
+        "native_sol_check": "memcmp against WSOL mint (So111...) to determine if dealing with native SOL vs SPL token"
+      },
+      "swap_router (FUN_ram_000026c0)": {
+        "address": "0x000026c0",
+        "size_bytes": 11608,
+        "purpose": "Core hop dispatch loop. For each hop: read program ID from accounts, memcmp against ~20 hardcoded DEX program IDs, dispatch to correct CPI handler. Logs 'hop: N' after each swap.",
+        "dispatch_method": "Chain of sol_memcmp_ calls against hardcoded 32-byte program IDs in .rodata",
+        "hop_types": "27 hop types (0x00-0x1a), nibble-packed (4-bit encoding). Some are compound: 0x09→[0xd,0x7], 0x0e→[0xf,0x5]",
+        "return_codes": {
+          "0x1771": "Success (swaps completed, profit found)",
+          "0x1773": "Not enough accounts or swap failed",
+          "0x1776": "Hop completed (intermediate)",
+          "0x1777": "Configuration error",
+          "5999": "Continue to next hop",
+          "6000": "Unknown DEX program"
+        }
+      },
+      "meteora_dlmm_cpi (FUN_ram_00005620)": {
+        "address": "0x00005620",
+        "size_bytes": 1792,
+        "purpose": "Build and execute CPI to Meteora DLMM Swap2. Handles variable bin arrays (21-23 accounts)."
+      },
+      "multi_dex_10_account_cpi (FUN_ram_00005fe8)": {
+        "address": "0x00005fe8",
+        "size_bytes": 2904,
+        "purpose": "CPI handler for 5+ DEXes sharing 10-account layout (Orca Token Swap, Saber, Saros, StepN/Dooar, Penguin/Phoenix)"
+      },
+      "create_token_account (FUN_ram_00001ff0)": {
+        "address": "0x00001ff0",
+        "size_bytes": 888,
+        "purpose": "Create SPL token account via createAccountWithSeed + initializeAccount3. Checks if payer is System Program owner.",
+        "tip_transfer": "If payer matches authority, transfers SOL as tip (+ 0xdab88 = 896,904 adjustment)"
+      },
+      "heap_allocator (FUN_ram_0000c5f0)": {
+        "address": "0x0000c5f0",
+        "size_bytes": 208,
+        "purpose": "Bump allocator for Solana heap (starting at 0x300000000)"
+      },
+      "instruction_deserializer (FUN_ram_0000e1c0)": {
+        "address": "0x0000e1c0",
+        "size_bytes": 5000,
+        "purpose": "Deserialize instruction data including swap route config and nibble-packed hop types"
+      },
+      "hop_expander (FUN_ram_00010b78)": {
+        "address": "0x00010b78",
+        "size_bytes": 3400,
+        "purpose": "Expand compound hop types into atomic hops. Maps compound indices to pairs of atomic swaps."
+      },
+      "u128_division (FUN_ram_000137a0)": {
+        "address": "0x000137a0",
+        "size_bytes": 5200,
+        "purpose": "Software u128 division for fee/tip calculations"
+      },
+      "panic_handler (FUN_ram_00018308)": {
+        "address": "0x00018308",
+        "size_bytes": 3800,
+        "purpose": "Anchor-style panic with source file + line logging"
+      },
+      "sol_memcmp_wrapper (FUN_ram_0001e478)": {
+        "address": "0x0001e478",
+        "size_bytes": 64,
+        "purpose": "Wrapper around sol_memcmp_ syscall"
+      },
+      "sol_log_wrapper (FUN_ram_0001ba98)": {
+        "address": "0x0001ba98",
+        "size_bytes": 8,
+        "purpose": "Wrapper to log compute units (calls sol_log_compute_units_)"
+      }
     }
   },
   "instruction_types": {
